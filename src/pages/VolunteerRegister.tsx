@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Mail, Phone, MapPin, User, Award, Heart, Sparkles } from "lucide-react";
+import { Mail, Phone, MapPin, User, Award, Heart, Sparkles, Check } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
 const ALL_SKILLS = [
@@ -126,7 +125,14 @@ const VolunteerRegister = () => {
                           active ? "border-accent bg-accent/10 text-accent" : "border-border text-muted-foreground hover:border-primary/40"
                         )}
                       >
-                        <Checkbox checked={active} className="pointer-events-none" />
+                        <span
+                          className={cn(
+                            "h-4 w-4 rounded border-2 flex items-center justify-center shrink-0",
+                            active ? "bg-accent border-accent text-accent-foreground" : "border-border"
+                          )}
+                        >
+                          {active && <Check className="h-3 w-3" />}
+                        </span>
                         {a}
                       </button>
                     );
