@@ -1,6 +1,5 @@
-import { Utensils, Stethoscope, GraduationCap, Home, LifeBuoy, LucideIcon } from "lucide-react";
-
-export type Category = "Food" | "Medical" | "Education" | "Shelter" | "Rescue";
+import { Utensils, Stethoscope, GraduationCap, Home, LifeBuoy, type LucideIcon } from "lucide-react";
+import type { Case, Category, Volunteer } from "@/types";
 
 export const categoryIcons: Record<Category, LucideIcon> = {
   Food: Utensils,
@@ -16,30 +15,6 @@ export const categoryColors: Record<Category, string> = {
   Education: "bg-indigo-50 text-indigo-600 border-indigo-200",
   Shelter: "bg-emerald-50 text-emerald-600 border-emerald-200",
   Rescue: "bg-sky-50 text-sky-600 border-sky-200",
-};
-
-export type Case = {
-  id: string;
-  title: string;
-  category: Category;
-  urgency: "High" | "Medium" | "Low";
-  location: string;
-  peopleAffected: number;
-  description: string;
-  skills: string[];
-  reportedAt: string;
-  status: "Open" | "In Progress" | "Resolved";
-};
-
-export type Volunteer = {
-  id: string;
-  name: string;
-  avatar?: string;
-  skills: string[];
-  location: string;
-  availability: string[];
-  preferredCause: Category;
-  distanceKm: number;
 };
 
 export const cases: Case[] = [
@@ -143,60 +118,12 @@ export const cases: Case[] = [
 ];
 
 export const volunteers: Volunteer[] = [
-  {
-    id: "V-201",
-    name: "Aanya Sharma",
-    skills: ["Logistics", "Distribution", "Driving"],
-    location: "Patna, Bihar",
-    availability: ["Weekdays", "Weekends"],
-    preferredCause: "Food",
-    distanceKm: 3,
-  },
-  {
-    id: "V-202",
-    name: "Rohan Mehta",
-    skills: ["Doctor", "First Aid"],
-    location: "Patna, Bihar",
-    availability: ["Weekends", "Evenings"],
-    preferredCause: "Medical",
-    distanceKm: 5,
-  },
-  {
-    id: "V-203",
-    name: "Priya Nair",
-    skills: ["Teaching", "Mentoring", "Logistics"],
-    location: "Gaya, Bihar",
-    availability: ["Weekdays"],
-    preferredCause: "Education",
-    distanceKm: 12,
-  },
-  {
-    id: "V-204",
-    name: "Vikram Singh",
-    skills: ["Distribution", "Driving", "Construction"],
-    location: "Patna, Bihar",
-    availability: ["Weekdays", "Weekends", "Evenings"],
-    preferredCause: "Shelter",
-    distanceKm: 7,
-  },
-  {
-    id: "V-205",
-    name: "Meera Iyer",
-    skills: ["Nurse", "First Aid", "Counseling"],
-    location: "Muzaffarpur, Bihar",
-    availability: ["Weekends"],
-    preferredCause: "Medical",
-    distanceKm: 18,
-  },
-  {
-    id: "V-206",
-    name: "Arjun Patel",
-    skills: ["Logistics", "Donation Drive"],
-    location: "Ranchi, Jharkhand",
-    availability: ["Evenings"],
-    preferredCause: "Food",
-    distanceKm: 35,
-  },
+  { id: "V-201", name: "Aanya Sharma", skills: ["Logistics", "Distribution", "Driving"], location: "Patna, Bihar", availability: ["Weekdays", "Weekends"], preferredCause: "Food", distanceKm: 3 },
+  { id: "V-202", name: "Rohan Mehta", skills: ["Doctor", "First Aid"], location: "Patna, Bihar", availability: ["Weekends", "Evenings"], preferredCause: "Medical", distanceKm: 5 },
+  { id: "V-203", name: "Priya Nair", skills: ["Teaching", "Mentoring", "Logistics"], location: "Gaya, Bihar", availability: ["Weekdays"], preferredCause: "Education", distanceKm: 12 },
+  { id: "V-204", name: "Vikram Singh", skills: ["Distribution", "Driving", "Construction"], location: "Patna, Bihar", availability: ["Weekdays", "Weekends", "Evenings"], preferredCause: "Shelter", distanceKm: 7 },
+  { id: "V-205", name: "Meera Iyer", skills: ["Nurse", "First Aid", "Counseling"], location: "Muzaffarpur, Bihar", availability: ["Weekends"], preferredCause: "Medical", distanceKm: 18 },
+  { id: "V-206", name: "Arjun Patel", skills: ["Logistics", "Donation Drive"], location: "Ranchi, Jharkhand", availability: ["Evenings"], preferredCause: "Food", distanceKm: 35 },
 ];
 
 export const stats = {
