@@ -2,56 +2,57 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Activity, AlertTriangle, Users, Boxes, Search, MapPin, ArrowUpRight,
-  LayoutGrid, List, TrendingUp, TrendingDown, Filter,
+  LayoutGrid, List, Filter,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import DashboardCards from "@/components/DashboardCards";
+import UrgencyBadge from "@/components/UrgencyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import UrgencyBadge from "@/components/UrgencyBadge";
-import { cases as allCases, categoryIcons, categoryColors, type Category } from "@/data/mockData";
+import { cases as allCases, categoryIcons, categoryColors } from "@/data/mockData";
 import { cn } from "@/lib/utils";
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import type { Category, DashboardSummary } from "@/types";
 
 const URGENCIES = ["All", "High", "Medium", "Low"] as const;
 const CATEGORIES = ["All", "Food", "Medical", "Education", "Shelter", "Rescue"] as const;
 
-const Dashboard = () => {
+const DashboardPage = () => {
   const [urgency, setUrgency] = useState<typeof URGENCIES[number]>("All");
   const [category, setCategory] = useState<typeof CATEGORIES[number]>("All");
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"grid" | "table">("grid");
 
   const filtered = useMemo(() => {
-    return allCases.filter(c =>
-      (urgency === "All" || c.urgency === urgency) &&
-      (category === "All" || c.category === category) &&
-      (search === "" || c.title.toLowerCase().includes(search.toLowerCase()) || c.location.toLowerCase().includes(search.toLowerCase()))
+    return allCases.filter(
+      (c) =>
+        (urgency === "All" || c.urgency === urgency) &&
+        (category === "All" || c.category === category) &&
+        (search === "" ||
+          c.title.toLowerCase().includes(search.toLowerCase()) ||
+          c.location.toLowerCase().includes(search.toLowerCase())),
     );
   }, [urgency, category, search]);
 
-  const totals = {
-    active: allCases.filter(c => c.status !== "Resolved").length,
-    high: allCases.filter(c => c.urgency === "High").length,
-    volunteers: 248,
-    resources: 67,
-  };
+  const summaryCards: DashboardSummary[] = [
+    { icon: Activity, label: "Active Cases", value: allCases.filter((c) => c.status !== "Resolved").length, trend: "+8%", up: true, color: "text-primary bg-primary/10" },
+    { icon: AlertTriangle, label: "High Priority", value: allCases.filter((c) => c.urgency === "High").length, trend: "+3", up: true, color: "text-urgency-high bg-urgency-high-soft" },
+    { icon: Users, label: "Volunteers Available", value: 248, trend: "+12%", up: true, color: "text-accent bg-accent/10" },
+    { icon: Boxes, label: "Resources Assigned", value: 67, trend: "-4%", up: false, color: "text-indigo-600 bg-indigo-50" },
+  ];
 
-  // chart data by category
-  const byCategory = (["Food", "Medical", "Education", "Shelter", "Rescue"] as Category[]).map(cat => ({
+  const byCategory = (["Food", "Medical", "Education", "Shelter", "Rescue"] as Category[]).map((cat) => ({
     cat,
-    count: allCases.filter(c => c.category === cat).length,
+    count: allCases.filter((c) => c.category === cat).length,
   }));
-  const maxCount = Math.max(...byCategory.map(b => b.count));
+  const maxCount = Math.max(...byCategory.map((b) => b.count));
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
       <Navbar />
 
       <main className="flex-1 container py-8 md:py-10">
-        {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
             <p className="text-xs font-semibold text-accent uppercase tracking-wider">NGO Dashboard</p>
@@ -63,34 +64,10 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        {/* Summary cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[
-            { icon: Activity, label: "Active Cases", value: totals.active, trend: "+8%", up: true, color: "text-primary bg-primary/10" },
-            { icon: AlertTriangle, label: "High Priority", value: totals.high, trend: "+3", up: true, color: "text-urgency-high bg-urgency-high-soft" },
-            { icon: Users, label: "Volunteers Available", value: totals.volunteers, trend: "+12%", up: true, color: "text-accent bg-accent/10" },
-            { icon: Boxes, label: "Resources Assigned", value: totals.resources, trend: "-4%", up: false, color: "text-indigo-600 bg-indigo-50" },
-          ].map(s => (
-            <div key={s.label} className="rounded-2xl border border-border bg-card p-5 shadow-soft hover:shadow-elegant transition-smooth">
-              <div className="flex items-center justify-between">
-                <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center", s.color)}>
-                  <s.icon className="h-5 w-5" />
-                </div>
-                <span className={cn(
-                  "text-xs font-semibold inline-flex items-center gap-1 px-2 py-0.5 rounded-full",
-                  s.up ? "text-accent bg-accent/10" : "text-urgency-high bg-urgency-high-soft"
-                )}>
-                  {s.up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                  {s.trend}
-                </span>
-              </div>
-              <div className="mt-4 text-3xl font-bold tracking-tight">{s.value}</div>
-              <div className="text-sm text-muted-foreground mt-1">{s.label}</div>
-            </div>
-          ))}
+        <div className="mb-8">
+          <DashboardCards cards={summaryCards} />
         </div>
 
-        {/* Chart + filters row */}
         <div className="grid lg:grid-cols-3 gap-4 mb-6">
           <div className="lg:col-span-2 rounded-2xl border border-border bg-card p-6 shadow-soft">
             <div className="flex items-center justify-between mb-5">
@@ -101,7 +78,7 @@ const Dashboard = () => {
               <span className="text-xs text-muted-foreground">Last 30 days</span>
             </div>
             <div className="space-y-4">
-              {byCategory.map(b => {
+              {byCategory.map((b) => {
                 const Icon = categoryIcons[b.cat];
                 const pct = (b.count / maxCount) * 100;
                 return (
@@ -114,10 +91,7 @@ const Dashboard = () => {
                       <span className="font-bold">{b.count}</span>
                     </div>
                     <div className="h-2 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full rounded-full gradient-hero transition-all duration-700"
-                        style={{ width: `${pct}%` }}
-                      />
+                      <div className="h-full rounded-full gradient-hero transition-all duration-700" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 );
@@ -151,22 +125,21 @@ const Dashboard = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search cases by title or location..."
-                className="pl-9 h-10 border-border bg-background"
+                value={search} onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search cases by title or location..." className="pl-9 h-10 border-border bg-background"
               />
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground"><Filter className="h-3 w-3" /> Urgency:</div>
-              {URGENCIES.map(u => (
+              <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                <Filter className="h-3 w-3" /> Urgency:
+              </div>
+              {URGENCIES.map((u) => (
                 <button
-                  key={u}
-                  onClick={() => setUrgency(u)}
+                  key={u} onClick={() => setUrgency(u)}
                   className={cn(
                     "px-3 py-1.5 rounded-lg text-xs font-semibold border transition-smooth",
-                    urgency === u ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                    urgency === u ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40",
                   )}
                 >
                   {u}
@@ -176,13 +149,12 @@ const Dashboard = () => {
 
             <div className="flex flex-wrap items-center gap-2">
               <div className="text-xs font-semibold text-muted-foreground">Category:</div>
-              {CATEGORIES.map(c => (
+              {CATEGORIES.map((c) => (
                 <button
-                  key={c}
-                  onClick={() => setCategory(c)}
+                  key={c} onClick={() => setCategory(c)}
                   className={cn(
                     "px-3 py-1.5 rounded-lg text-xs font-semibold border transition-smooth",
-                    category === c ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"
+                    category === c ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40",
                   )}
                 >
                   {c}
@@ -201,14 +173,15 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Cases */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Reported needs <span className="text-muted-foreground font-normal">({filtered.length})</span></h2>
+          <h2 className="text-lg font-semibold">
+            Reported needs <span className="text-muted-foreground font-normal">({filtered.length})</span>
+          </h2>
         </div>
 
         {view === "grid" ? (
           <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filtered.map(c => {
+            {filtered.map((c) => {
               const Icon = categoryIcons[c.category];
               return (
                 <div key={c.id} className="group rounded-2xl border border-border bg-card p-5 shadow-soft hover:shadow-elegant hover:-translate-y-0.5 transition-smooth flex flex-col">
@@ -218,7 +191,6 @@ const Dashboard = () => {
                     </div>
                     <UrgencyBadge level={c.urgency} />
                   </div>
-
                   <div className="mt-4 flex-1">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span className="font-mono">{c.id}</span>
@@ -228,7 +200,6 @@ const Dashboard = () => {
                     <h3 className="mt-1 font-semibold leading-snug line-clamp-2">{c.title}</h3>
                     <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">{c.description}</p>
                   </div>
-
                   <div className="mt-4 pt-4 border-t border-border space-y-2.5">
                     <div className="flex items-center justify-between text-xs">
                       <span className="flex items-center gap-1.5 text-muted-foreground">
@@ -261,7 +232,7 @@ const Dashboard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map(c => {
+                {filtered.map((c) => {
                   const Icon = categoryIcons[c.category];
                   return (
                     <TableRow key={c.id}>
@@ -299,4 +270,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardPage;
