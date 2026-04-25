@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { categoryIcons, categoryColors } from "@/data/mockData";
 import {
   Activity, AlertTriangle, Users, Boxes, Search, MapPin, ArrowUpRight,
   LayoutGrid, List, Filter,
@@ -10,7 +11,7 @@ import DashboardCards from "@/components/DashboardCards";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cases as allCases, categoryIcons, categoryColors } from "@/data/mockData";
+import { useAppData } from "@/context/AppContext";
 import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Category, DashboardSummary } from "@/types";
@@ -19,6 +20,7 @@ const URGENCIES = ["All", "High", "Medium", "Low"] as const;
 const CATEGORIES = ["All", "Food", "Medical", "Education", "Shelter", "Rescue"] as const;
 
 const DashboardPage = () => {
+  const { cases: allCases } = useAppData();
   const [urgency, setUrgency] = useState<typeof URGENCIES[number]>("All");
   const [category, setCategory] = useState<typeof CATEGORIES[number]>("All");
   const [search, setSearch] = useState("");
@@ -33,7 +35,7 @@ const DashboardPage = () => {
           c.title.toLowerCase().includes(search.toLowerCase()) ||
           c.location.toLowerCase().includes(search.toLowerCase())),
     );
-  }, [urgency, category, search]);
+  }, [allCases,urgency, category, search]);
 
   const summaryCards: DashboardSummary[] = [
     { icon: Activity, label: "Active Cases", value: allCases.filter((c) => c.status !== "Resolved").length, trend: "+8%", up: true, color: "text-primary bg-primary/10" },

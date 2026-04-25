@@ -4,13 +4,28 @@ import { Lightbulb, Clock, ShieldCheck, Send } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import NeedForm from "@/components/NeedForm";
+import { useAppData } from "@/context/AppContext";
 import type { NeedFormValues } from "@/types";
+
 
 const ReportNeedPage = () => {
   const navigate = useNavigate();
-
-  const handleSubmit = (_values: NeedFormValues) => {
-    // TODO: send to backend API
+  const { addCase } = useAppData();
+  const handleSubmit = (values: NeedFormValues) => {
+    const newCase = {
+      id: Date.now().toString(),
+      title: values.title,
+      location: `${values.location}`,
+      peopleAffected: values.peopleAffected,
+      status: "pending",
+      urgency: values.urgency,
+      category: values.category,
+      description: values.description,
+      skills: values.skills,
+      reportedAt: new Date().toISOString(),
+      
+    };
+    addCase(newCase);    
     toast.success("Need reported successfully", {
       description: "An NGO coordinator will review and start matching volunteers shortly.",
     });

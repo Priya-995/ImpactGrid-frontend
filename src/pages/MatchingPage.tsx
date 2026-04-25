@@ -6,17 +6,38 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import MatchCard from "@/components/MatchCard";
 import UrgencyBadge from "@/components/UrgencyBadge";
-import { cases, volunteers, categoryIcons, categoryColors } from "@/data/mockData";
+import { categoryIcons, categoryColors } from "@/data/mockData";
 import { rankVolunteers } from "@/lib/matching";
 import { cn } from "@/lib/utils";
 import type { Volunteer } from "@/types";
+import { useAppData } from "@/context/AppContext";
 
 const MatchingPage = () => {
   const { id } = useParams();
-  const caseData = cases.find((c) => c.id === id) ?? cases[0];
-  const Icon = categoryIcons[caseData.category];
+  const { cases, volunteers } = useAppData();
 
-  const ranked = useMemo(() => rankVolunteers(caseData, volunteers), [caseData]);
+  const caseData = cases.find((c) => String(c.id) === String(id));
+
+  if (!caseData) {
+    return (
+      <div className="min-h-screen flex flex-col bg-muted/30">
+        <Navbar />
+        <main className="flex-1 container py-10">
+          <p className="text-lg font-semibold">Case not found.</p>
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mt-3"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+          </Link>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const Icon = categoryIcons[caseData.category];
+  const ranked = useMemo(() => rankVolunteers(caseData, volunteers), [caseData, volunteers]);
 
   const handleAssign = (v: Volunteer) => {
     toast.success(`${v.name} assigned to case ${caseData.id}`, {
@@ -33,7 +54,6 @@ const MatchingPage = () => {
           <ArrowLeft className="h-4 w-4" /> Back to Dashboard
         </Link>
 
-        {/* Case summary */}
         <div className="rounded-2xl border border-border bg-card p-6 md:p-8 shadow-soft mb-8 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 gradient-hero" />
           <div className="flex flex-col md:flex-row md:items-start gap-5">
@@ -69,7 +89,6 @@ const MatchingPage = () => {
           </div>
         </div>
 
-        {/* Matches */}
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-xl md:text-2xl font-bold flex items-center gap-2">

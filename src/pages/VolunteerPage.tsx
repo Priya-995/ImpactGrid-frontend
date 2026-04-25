@@ -5,12 +5,30 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import VolunteerForm from "@/components/VolunteerForm";
 import type { VolunteerFormValues } from "@/types";
+import { useAppData } from "@/context/AppContext";
 
 const VolunteerPage = () => {
   const navigate = useNavigate();
+  const { addVolunteer } = useAppData();
 
-  const handleSubmit = (_values: VolunteerFormValues) => {
-    // TODO: send to backend API
+  const handleSubmit = (values: VolunteerFormValues) => {
+   const newVolunteer = {
+      
+      id: Date.now().toString(),
+      name: values.name,
+      email: values.email,
+      phone: values.phone,
+      location: values.location,
+        distanceKm: 5,
+        status: "Available",
+      skills: values.skills,
+      availability: values.availability,
+      preferredCause: values.preferredCause,
+      createdAt: new Date().toISOString(),
+      
+    };
+      addVolunteer(newVolunteer);
+
     toast.success("Welcome to ImpactGrid 🎉", {
       description: "You'll be notified when matching cases come up in your area.",
     });
