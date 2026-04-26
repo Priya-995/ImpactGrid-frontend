@@ -153,7 +153,7 @@ const VolunteerForm = ({ initialValues, onSubmit, onCancel }: VolunteerFormProps
         {onCancel && (
           <Button variant="ghost" type="button" onClick={onCancel}>Cancel</Button>
         )}
-        <Button type="submit" size="lg" className="gradient-hero text-primary-foreground border-0 shadow-soft h-11 px-6">
+        <Button type="submit" size="lg"  onClick={() => console.log("Register button clicked")} className="gradient-hero text-primary-foreground border-0 shadow-soft h-11 px-6">
           Register as Volunteer
         </Button>
       </div>

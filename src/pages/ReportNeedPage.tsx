@@ -11,13 +11,14 @@ import type { NeedFormValues } from "@/types";
 const ReportNeedPage = () => {
   const navigate = useNavigate();
   const { addCase } = useAppData();
-  const handleSubmit = (values: NeedFormValues) => {
+  const handleSubmit = async (values: NeedFormValues) => {
+  try {
     const newCase = {
-      id: Date.now().toString(),
+      id: `C-${Date.now()}`,   // IMPORTANT
       title: values.title,
-      location: `${values.location}`,
+      location: values.location,
       peopleAffected: values.peopleAffected,
-      status: "pending",
+      status: "Open" as const,   // better than "pending"
       urgency: values.urgency,
       category: values.category,
       description: values.description,
@@ -25,11 +26,20 @@ const ReportNeedPage = () => {
       reportedAt: new Date().toISOString(),
       
     };
-    addCase(newCase);    
+
+    await addCase(newCase);   // ✅ MUST await
+
     toast.success("Need reported successfully", {
       description: "An NGO coordinator will review and start matching volunteers shortly.",
     });
-    setTimeout(() => navigate("/dashboard"), 800);
+
+    navigate("/dashboard");   // no need setTimeout
+  } catch (error) {
+    toast.error("Failed to submit need", {
+      description: "Please try again.",
+    });
+    console.error(error);
+  }
   };
 
   return (

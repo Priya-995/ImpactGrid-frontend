@@ -1,20 +1,31 @@
 import { HandHeart, Activity, Users, Building2 } from "lucide-react";
 import type { ImpactStat } from "@/types";
-import { stats as defaultStats } from "@/data/mockData";
+import { useAppData } from "@/context/AppContext";
 
 export interface ImpactStatsProps {
   stats?: ImpactStat[];
 }
 
-const buildDefault = (): ImpactStat[] => [
-  { icon: HandHeart, label: "People Helped", value: defaultStats.peopleHelped.toLocaleString(), trend: "+12%" },
-  { icon: Activity, label: "Active Cases", value: defaultStats.activeCases, trend: "Live" },
-  { icon: Users, label: "Volunteers", value: defaultStats.volunteers.toLocaleString(), trend: "+248" },
-  { icon: Building2, label: "NGOs Onboarded", value: defaultStats.ngos, trend: "+5" },
-];
+
 
 const ImpactStats = ({ stats }: ImpactStatsProps) => {
-  const items = stats ?? buildDefault();
+  const { cases, volunteers } = useAppData();
+
+  const totalPeople = cases.reduce(
+    (sum, c) => sum + (Number(c.peopleAffected) || 0),
+    0
+  );
+
+  const activeCases = cases.filter((c) => c.status !== "Resolved").length;
+
+  const items =
+    stats ?? [
+      { icon: HandHeart, label: "People Impacted", value: totalPeople.toLocaleString(), trend: "Live" },
+      { icon: Activity, label: "Active Cases", value: activeCases, trend: "Live" },
+      { icon: Users, label: "Volunteers", value: volunteers.length.toLocaleString(), trend: "Live" },
+      { icon: Building2, label: "NGOs Onboarded", value: "1", trend: "Pilot" },
+    ];
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {items.map((s) => (

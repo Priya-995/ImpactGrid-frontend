@@ -11,11 +11,12 @@ import { rankVolunteers } from "@/lib/matching";
 import { cn } from "@/lib/utils";
 import type { Volunteer } from "@/types";
 import { useAppData } from "@/context/AppContext";
+import { useNavigate } from "react-router-dom";
 
 const MatchingPage = () => {
   const { id } = useParams();
-  const { cases, volunteers } = useAppData();
-
+  const { cases, volunteers, assignVolunteerToCase } = useAppData();
+  const navigate = useNavigate();
   const caseData = cases.find((c) => String(c.id) === String(id));
 
   if (!caseData) {
@@ -40,10 +41,13 @@ const MatchingPage = () => {
   const ranked = useMemo(() => rankVolunteers(caseData, volunteers), [caseData, volunteers]);
 
   const handleAssign = (v: Volunteer) => {
+  assignVolunteerToCase(caseData.id, v.id);
+
     toast.success(`${v.name} assigned to case ${caseData.id}`, {
       description: "They'll receive a notification with case details.",
     });
   };
+
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
@@ -108,6 +112,7 @@ const MatchingPage = () => {
               rank={i + 1}
               isTop={i < 3}
               onAssign={handleAssign}
+               onViewProfile={(v) => navigate(`/volunteer-profile/${v.id}`)}
             />
           ))}
         </div>

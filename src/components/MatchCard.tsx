@@ -2,6 +2,7 @@ import { Clock, Crown, MapPin, Target, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { MatchResult, Volunteer } from "@/types";
+import { useState } from "react";
 
 export interface MatchCardProps {
   volunteer: Volunteer;
@@ -37,7 +38,7 @@ const ScoreRing = ({ score }: { score: number }) => {
 
 const MatchCard = ({ volunteer: v, match: m, rank, isTop, onAssign, onViewProfile }: MatchCardProps) => {
   const initials = v.name.split(" ").map((p) => p[0]).join("").slice(0, 2);
-
+  const [assigned, setAssigned] = useState(false); // ✅ ADD THIS
   return (
     <div
       className={cn(
@@ -119,16 +120,58 @@ const MatchCard = ({ volunteer: v, match: m, rank, isTop, onAssign, onViewProfil
               </span>
             )}
           </div>
+          {/* WHY THIS VOLUNTEER (WOW FEATURE) */}
+<div className="mt-4 rounded-xl border border-border bg-muted/40 p-3">
+  <p className="text-xs font-bold text-foreground mb-2">
+    Why this volunteer?
+  </p>
+
+  <div className="space-y-1.5 text-xs text-muted-foreground">
+    {m.matchedSkills.length > 0 && (
+      <p>
+        ✔ Matches {m.matchedSkills.length} required skill
+        {m.matchedSkills.length > 1 ? "s" : ""}:{" "}
+        <span className="font-semibold text-foreground">
+          {m.matchedSkills.join(", ")}
+        </span>
+      </p>
+    )}
+
+    {m.nearby && <p>✔ Located close to the reported need</p>}
+
+    {m.available && <p>✔ Available for quick deployment</p>}
+
+    {m.score >= 80 && (
+      <p>✔ High compatibility score ({m.score}%)</p>
+    )}
+  </div>
+</div>
         </div>
 
         <div className="flex md:flex-col items-end gap-2 md:w-40 shrink-0">
           <Button
-            onClick={() => onAssign?.(v)}
-            className={cn("w-full", isTop ? "gradient-hero text-primary-foreground border-0 shadow-soft" : "")}
-            variant={isTop ? "default" : "outline"}
+            onClick={() => {
+              onAssign?.(v);
+              setAssigned(true);
+            }}
+            disabled={assigned}
+            className={cn(
+              "w-full",
+              assigned
+                ? "bg-green-600 text-white border-0"
+                : isTop
+                  ? "gradient-hero text-primary-foreground border-0 shadow-soft"
+                  : ""
+            )}
+            variant={assigned ? "default" : isTop ? "default" : "outline"}
           >
-            Assign Volunteer
+            {assigned ? "Assigned ✓" : "Assign Volunteer"}
           </Button>
+          {assigned && (
+            <span className="text-[11px] text-green-600 font-semibold">
+              Volunteer assigned successfully
+            </span>
+          )}
           <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => onViewProfile?.(v)}>
             View profile
           </Button>

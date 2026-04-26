@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Award, Heart, MapPin, Sparkles } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -11,28 +12,35 @@ const VolunteerPage = () => {
   const navigate = useNavigate();
   const { addVolunteer } = useAppData();
 
-  const handleSubmit = (values: VolunteerFormValues) => {
+  const handleSubmit = async (values: VolunteerFormValues) => {
+  try {
    const newVolunteer = {
-      
-      id: Date.now().toString(),
+      id: `V-${Date.now()}`,
       name: values.name,
       email: values.email,
       phone: values.phone,
       location: values.location,
         distanceKm: 5,
-        status: "Available",
+      status: "Available" as const,
       skills: values.skills,
       availability: values.availability,
       preferredCause: values.preferredCause,
-      createdAt: new Date().toISOString(),
       
     };
-      addVolunteer(newVolunteer);
+
+    await addVolunteer(newVolunteer);
 
     toast.success("Welcome to ImpactGrid 🎉", {
       description: "You'll be notified when matching cases come up in your area.",
     });
-    setTimeout(() => navigate("/dashboard"), 800);
+
+    navigate("/dashboard");
+  } catch (error) {
+    toast.error("Failed to register volunteer", {
+      description: "Please check backend/API and try again.",
+    });
+    console.error(error);
+  }
   };
 
   return (

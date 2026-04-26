@@ -47,7 +47,16 @@ const NeedForm = ({ initialValues, onSubmit, submitLabel = "Submit Report" }: Ne
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ title, description, location, peopleAffected, category, urgency, skills });
+
+  onSubmit({
+    title,
+    description,
+    location: location.trim(),
+    peopleAffected: Number(peopleAffected),
+    category,
+    urgency,
+    skills,
+  });
   };
 
   return (
