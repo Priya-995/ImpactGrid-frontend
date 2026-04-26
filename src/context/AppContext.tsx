@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 const AppContext = createContext(null);
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = "https://impact-grid-backend.vercel.app/api";
 
 export const AppProvider = ({ children }) => {
   const [cases, setCases] = useState([]);
