@@ -1,37 +1,31 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 const AppContext = createContext(null);
-
 const API_URL = "https://impact-grid-backend.vercel.app/api";
 
 export const AppProvider = ({ children }) => {
-  const [cases, setCases] = useState([]);
+  const [cases, setCases]         = useState([]);
   const [volunteers, setVolunteers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]     = useState(true);
 
+  // ─── Fetch all data ────────────────────────────────────────────
   const fetchData = async () => {
     try {
       setLoading(true);
+      const [casesRes, volunteersRes] = await Promise.all([
+        fetch(`${API_URL}/cases`),
+        fetch(`${API_URL}/volunteers`),
+      ]);
 
-      const casesRes = await fetch(`${API_URL}/cases`);
-      const volunteersRes = await fetch(`${API_URL}/volunteers`);
+      if (!casesRes.ok)      throw new Error(`Cases API failed: ${casesRes.status}`);
+      if (!volunteersRes.ok) throw new Error(`Volunteers API failed: ${volunteersRes.status}`);
 
-      console.log("cases status:", casesRes.status);
-      console.log("volunteers status:", volunteersRes.status);
-
-      if (!casesRes.ok) throw new Error("Cases API failed");
-      if (!volunteersRes.ok) throw new Error("Volunteers API failed");
-
-      const casesData = await casesRes.json();
+      const casesData      = await casesRes.json();
       const volunteersData = await volunteersRes.json();
 
-      console.log("casesData:", casesData);
-      console.log("volunteersData:", volunteersData);
-
-      setCases(Array.isArray(casesData) ? casesData : casesData.data || []);
-      setVolunteers(
-        Array.isArray(volunteersData) ? volunteersData : volunteersData.data || []
-      );
+      // Handle both { data: [] } and plain [] responses
+      setCases(     Array.isArray(casesData)      ? casesData      : casesData.data      ?? []);
+      setVolunteers(Array.isArray(volunteersData) ? volunteersData : volunteersData.data ?? []);
     } catch (err) {
       console.error("Error fetching data:", err);
     } finally {
@@ -39,52 +33,61 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
+  // ─── Add Case (was missing try/catch + res.ok check) ───────────
   const addCase = async (newCase) => {
-    const res = await fetch(`${API_URL}/cases`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newCase),
-    });
+    try {
+      const res = await fetch(`${API_URL}/cases`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(newCase),
+      });
 
-    const data = await res.json();
-    console.log("created case:", data);
+      const data = await res.json();
 
-    setCases((prev) => [data.data || data, ...prev]);
+      // ✅ This was missing — without it, a 400/500 looks like success
+      if (!res.ok) {
+        throw new Error(data.message || `Server error: ${res.status}`);
+      }
+
+      console.log("Created case:", data);
+      setCases((prev) => [data.data ?? data, ...prev]); // ✅ fixed corrupted reference
+    } catch (err) {
+      console.error("Add case error:", err);
+      throw err; // re-throw so the form can catch it and show the error toast
+    }
   };
 
- const addVolunteer = async (newVolunteer) => {
-  try {
-    console.log("Sending volunteer:", newVolunteer);
+  // ─── Add Volunteer ─────────────────────────────────────────────
+  const addVolunteer = async (newVolunteer) => {
+    try {
+      console.log("Sending volunteer:", newVolunteer);
+      const res = await fetch(`${API_URL}/volunteers`, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(newVolunteer),
+      });
 
-    const res = await fetch(`${API_URL}/volunteers`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newVolunteer),
-    });
+      const data = await res.json();
 
-    const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || `Failed to register volunteer: ${res.status}`);
+      }
 
-    console.log("Volunteer API status:", res.status);
-    console.log("Volunteer API response:", data);
-
-    if (!res.ok) {
-      throw new Error(data.message || "Failed to register volunteer");
+      console.log("Volunteer created:", data);
+      setVolunteers((prev) => [data.data ?? data, ...prev]); // ✅ fixed corrupted reference
+    } catch (err) {
+      console.error("Volunteer API error:", err);
+      throw err;
     }
+  };
 
-    setVolunteers((prev) => [data.data || data, ...prev]);
-  } catch (err) {
-    console.error("Volunteer API error:", err);
-    throw err;
-  }
-};
+  // ─── Assign Volunteer ──────────────────────────────────────────
   const assignVolunteerToCase = (caseId, volunteerId) => {
     setCases((prev) =>
-      prev.map((c) =>
-        String(c.id) === String(caseId)
+      prev.map((c) =>                                        // ✅ fixed corrupted reference
+        String(c.id ?? c._id) === String(caseId)            // ✅ also handles MongoDB _id
           ? { ...c, status: "In Progress", assignedTo: volunteerId }
           : c
       )
