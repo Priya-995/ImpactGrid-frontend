@@ -2,7 +2,7 @@ import { Clock, Crown, MapPin, Target, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { MatchResult, Volunteer } from "@/types";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 
 export interface MatchCardProps {
   volunteer: Volunteer;
@@ -39,6 +39,42 @@ const ScoreRing = ({ score }: { score: number }) => {
 const MatchCard = ({ volunteer: v, match: m, rank, isTop, onAssign, onViewProfile }: MatchCardProps) => {
   const initials = v.name.split(" ").map((p) => p[0]).join("").slice(0, 2);
   const [assigned, setAssigned] = useState(false); // ✅ ADD THIS
+  const [aiReason, setAiReason] = useState("");
+const [reasonLoading, setReasonLoading] = useState(false);
+
+ useEffect(() => {
+  const getReason = async () => {
+    try {
+      setReasonLoading(true);
+
+      const res = await fetch("http://localhost:3000/api/gemini/match-reason", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          volunteer: v,
+          match: m,
+          caseData: {
+            type: "Medical Emergency",
+            urgency: "High",
+            location: "Patna, Bihar",
+            requiredSkills: m.matchedSkills,
+          },
+        }),
+      });
+
+      const data = await res.json();
+      setAiReason(data.reason);
+    } catch (err) {
+      setAiReason("AI reason could not be generated right now.");
+    } finally {
+      setReasonLoading(false);
+    }
+  };
+
+  getReason();
+}, [v.id]);
   return (
     <div
       className={cn(
@@ -123,27 +159,12 @@ const MatchCard = ({ volunteer: v, match: m, rank, isTop, onAssign, onViewProfil
           {/* WHY THIS VOLUNTEER (WOW FEATURE) */}
 <div className="mt-4 rounded-xl border border-border bg-muted/40 p-3">
   <p className="text-xs font-bold text-foreground mb-2">
-    Why this volunteer?
+    Why this volunteer? 
+    <span className="ml-1 text-[10px] text-primary">(Gemini AI)</span>
   </p>
 
-  <div className="space-y-1.5 text-xs text-muted-foreground">
-    {m.matchedSkills.length > 0 && (
-      <p>
-        ✔ Matches {m.matchedSkills.length} required skill
-        {m.matchedSkills.length > 1 ? "s" : ""}:{" "}
-        <span className="font-semibold text-foreground">
-          {m.matchedSkills.join(", ")}
-        </span>
-      </p>
-    )}
-
-    {m.nearby && <p>✔ Located close to the reported need</p>}
-
-    {m.available && <p>✔ Available for quick deployment</p>}
-
-    {m.score >= 80 && (
-      <p>✔ High compatibility score ({m.score}%)</p>
-    )}
+  <div className="space-y-1.5 text-xs text-muted-foreground whitespace-pre-line">
+    {reasonLoading ? "Generating AI reason..." : aiReason}
   </div>
 </div>
         </div>

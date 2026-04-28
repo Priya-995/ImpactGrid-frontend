@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 const AppContext = createContext(null);
-const API_URL = "https://project-backend-fp6z.onrender.com/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 export const AppProvider = ({ children }) => {
   const [cases, setCases]         = useState([]);
